@@ -728,6 +728,7 @@ impl AppProject {
         &self,
         endpoint: Vc<AppEndpoint>,
         rsc_entry: ResolvedVc<Box<dyn Module>>,
+        extra_entries: Vc<EvaluatableAssets>,
     ) -> Result<Vc<ModuleGraphs>> {
         if *self.project.per_page_module_graph().await? {
             // Implements layout segment optimization to compute a graph "chain" for each layout
@@ -742,14 +743,21 @@ impl AppProject {
 
                 let mut visited_modules = VisitedModules::empty();
 
-                if !server_utils.is_empty() {
-                    let graph = SingleModuleGraph::new_with_entries_visited(
-                        server_utils.iter().map(|m| **m).collect(),
-                        visited_modules,
-                    );
-                    graphs.push(graph);
-                    visited_modules = VisitedModules::from_graph(graph)
-                }
+                let extra_entries = extra_entries
+                    .await?
+                    .into_iter()
+                    .map(|m| *ResolvedVc::upcast(*m));
+
+                let graph = SingleModuleGraph::new_with_entries_visited(
+                    server_utils
+                        .iter()
+                        .map(|m| **m)
+                        .chain(extra_entries)
+                        .collect(),
+                    visited_modules,
+                );
+                graphs.push(graph);
+                visited_modules = VisitedModules::from_graph(graph);
 
                 for module in server_component_entries.iter() {
                     let graph = SingleModuleGraph::new_with_entries_visited(
@@ -1014,7 +1022,10 @@ impl AppEndpoint {
         let runtime = app_entry.config.await?.runtime.unwrap_or_default();
 
         let rsc_entry = app_entry.rsc_entry;
-        let module_graphs = this.app_project.app_module_graphs(self, *rsc_entry).await?;
+        let module_graphs = this
+            .app_project
+            .app_module_graphs(self, *rsc_entry, this.app_project.client_runtime_entries())
+            .await?;
 
         let client_chunking_context = project.client_chunking_context();
 
