@@ -64,10 +64,9 @@ pub async fn get_app_client_references_chunks(
                     Ok((
                         client_reference_ty,
                         match client_reference_ty {
-                            ClientReferenceType::EcmascriptClientReference {
-                                module: ecmascript_client_reference,
-                                ..
-                            } => {
+                            ClientReferenceType::EcmascriptClientReference(
+                                ecmascript_client_reference,
+                            ) => {
                                 let ecmascript_client_reference_ref =
                                     ecmascript_client_reference.await?;
 
@@ -185,10 +184,9 @@ pub async fn get_app_client_references_chunks(
                     .iter()
                     .map(|client_reference_ty| async move {
                         Ok(match client_reference_ty {
-                            ClientReferenceType::EcmascriptClientReference {
-                                module: ecmascript_client_reference,
-                                ..
-                            } => {
+                            ClientReferenceType::EcmascriptClientReference(
+                                ecmascript_client_reference,
+                            ) => {
                                 let ecmascript_client_reference_ref =
                                     ecmascript_client_reference.await?;
 
@@ -229,10 +227,9 @@ pub async fn get_app_client_references_chunks(
                     .iter()
                     .map(|client_reference_ty| async move {
                         Ok(match client_reference_ty {
-                            ClientReferenceType::EcmascriptClientReference {
-                                module: ecmascript_client_reference,
-                                ..
-                            } => {
+                            ClientReferenceType::EcmascriptClientReference(
+                                ecmascript_client_reference,
+                            ) => {
                                 let ecmascript_client_reference_ref =
                                     ecmascript_client_reference.await?;
                                 *ResolvedVc::upcast(ecmascript_client_reference_ref.client_module)
@@ -280,7 +277,7 @@ pub async fn get_app_client_references_chunks(
                     layout_segment_client_chunks.insert(server_component, client_chunks);
 
                     for &client_reference_ty in client_reference_types.iter() {
-                        if let ClientReferenceType::EcmascriptClientReference { .. } =
+                        if let ClientReferenceType::EcmascriptClientReference(_) =
                             client_reference_ty
                         {
                             client_component_client_chunks.insert(
@@ -303,7 +300,7 @@ pub async fn get_app_client_references_chunks(
                     }
 
                     for &client_reference_ty in client_reference_types.iter() {
-                        if let ClientReferenceType::EcmascriptClientReference { .. } =
+                        if let ClientReferenceType::EcmascriptClientReference(_) =
                             client_reference_ty
                         {
                             client_component_ssr_chunks.insert(
